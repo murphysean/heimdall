@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Concent Form</title>
+</head>
+<body>
+	<form method="POST" action="/oauth2/authorize?{{.Query}}">
+		{{range .Scopes}}
+		<input type="checkbox" name="{{.Scope}}" {{if .PrevApproved}}checked{{end}}/>{{.Scope}}<br/>
+		{{end}}
+		<input type="submit" value="Deny" name="deny"/>
+		<input type="submit" value="Authorize" name="authorize"/>
+	</form>
+</body>
+</html>

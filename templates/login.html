@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Login Form</title>
+</head>
+<body>
+	<form method="POST" action="/login?return_to={{.}}">
+		<input type="text" name="login" placeholder="username or email"/><br/>
+		<input type="password" name="password"/><br/>
+		<input type="submit"/>
+	</form>
+</body>
+</html>
