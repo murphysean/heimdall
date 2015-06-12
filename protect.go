@@ -157,11 +157,13 @@ func (h *Heimdall) ExpandRequest(r *http.Request) (Token, Client, User) {
 		}
 	}
 
-	if token.GetUserId() != "" {
-		r.Header.Set("X-User-Id", token.GetUserId())
-	} else {
-		r.Header.Set("X-User-Id", token.GetClientId())
+	if token != nil {
+		if token.GetUserId() != "" {
+			r.Header.Set("X-User-Id", token.GetUserId())
+		} else {
+			r.Header.Set("X-User-Id", token.GetClientId())
+		}
+		r.Header.Set("X-Client-Id", token.GetClientId())
 	}
-	r.Header.Set("X-Client-Id", token.GetClientId())
 	return token, client, user
 }
