@@ -17,12 +17,14 @@ const (
 
 type PreAuthZHandler func(r *http.Request, scope string, client Client, user User) (status int, message string)
 type AuthZHandler func(r *http.Request, token Token, client Client, user User) (status int, message string)
+type NoPermitHandler func(w http.ResponseWriter, r *http.Request, status int, message string, token Token, client Client, user User)
 
-func NewHeimdall(handler http.Handler, preauthzfunc PreAuthZHandler, authzfunc AuthZHandler) *Heimdall {
+func NewHeimdall(handler http.Handler, preauthzfunc PreAuthZHandler, authzfunc AuthZHandler, nopermitfunc NoPermitHandler) *Heimdall {
 	h := new(Heimdall)
 	h.Handler = handler
 	h.PreAuthZFunction = preauthzfunc
 	h.AuthZFunction = authzfunc
+	h.NoPermitFunction = nopermitfunc
 
 	h.SessionDuration = 4 * time.Hour
 	h.AccessTokenDuration = time.Hour
@@ -38,6 +40,7 @@ type Heimdall struct {
 	DB               HeimdallDB
 	PreAuthZFunction PreAuthZHandler
 	AuthZFunction    AuthZHandler
+	NoPermitFunction NoPermitHandler
 	Templates        *template.Template
 
 	SessionDuration      time.Duration
@@ -60,9 +63,9 @@ func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.
 	token, client, user := h.ExpandRequest(r)
 	//Send information to authz function
 	s, m := az(r, token, client, user)
-	//If function returns anything other than permit write failure here
+	//If function returns anything other than permit hand off response to the no permit handler
 	if s != Permit {
-		http.Error(w, m, http.StatusForbidden)
+		h.NoPermitFunction(w, r, s, m, token, client, user)
 		return
 	}
 	//And now let the original handler do it's job
@@ -71,14 +74,14 @@ func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.
 
 //This function will allow you to leverage Heimdall to create fine grained policies on each
 //handlerfunction you might have.
-func (h *Heimdall) CreateHandlerFunc(handlerFunc http.HandlerFunc, az AuthZHandler) http.HandlerFunc {
+func (h *Heimdall) CreateHandlerFunc(handlerFunc http.HandlerFunc, az AuthZHandler, np NoPermitHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, client, user := h.ExpandRequest(r)
 		//Send information to authz function
 		s, m := az(r, token, client, user)
 		//If function returns anything other than permit write failure here
 		if s != Permit {
-			http.Error(w, m, http.StatusForbidden)
+			np(w, r, s, m, token, client, user)
 			return
 		}
 		//And now let the original handler do it's job
