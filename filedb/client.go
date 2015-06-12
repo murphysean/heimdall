@@ -47,11 +47,7 @@ func (c Client) SetInternal(internal bool) {
 }
 
 func (c Client) GetRedirectURIs() []string {
-	ruris := make([]string, 0)
-	for _, v := range giu.MustGetArrayAtObjPath(map[string]interface{}(c), "redirect_uris") {
-		ruris = append(ruris, giu.MustGetStringAtDocPath(v, "/"))
-	}
-	return ruris
+	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(c), "redirect_uris")
 }
 
 func (c Client) SetRedirectURIs(redirectURIs []string) {

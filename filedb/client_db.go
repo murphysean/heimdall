@@ -25,9 +25,9 @@ func (db *FileDB) VerifyClient(clientId, clientSecret string) (heimdall.Client, 
 		return nil, err
 	}
 	if c.GetSecret() == clientSecret {
-		return nil, heimdall.ErrInvalidCredentials
+		return c, nil
 	}
-	return c, nil
+	return nil, heimdall.ErrInvalidCredentials
 }
 
 func (db *FileDB) CreateClient(client heimdall.Client) (heimdall.Client, error) {

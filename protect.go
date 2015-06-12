@@ -2,9 +2,9 @@ package heimdall
 
 import (
 	"errors"
+	"github.com/murphysean/advhttp"
 	"html/template"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -15,11 +15,13 @@ const (
 	NotApplicable
 )
 
+type PreAuthZHandler func(r *http.Request, scope string, client Client, user User) (status int, message string)
 type AuthZHandler func(r *http.Request, token Token, client Client, user User) (status int, message string)
 
-func NewHeimdall(handler http.Handler, authzfunc AuthZHandler) *Heimdall {
+func NewHeimdall(handler http.Handler, preauthzfunc PreAuthZHandler, authzfunc AuthZHandler) *Heimdall {
 	h := new(Heimdall)
 	h.Handler = handler
+	h.PreAuthZFunction = preauthzfunc
 	h.AuthZFunction = authzfunc
 
 	h.SessionDuration = 4 * time.Hour
@@ -32,10 +34,11 @@ func NewHeimdall(handler http.Handler, authzfunc AuthZHandler) *Heimdall {
 }
 
 type Heimdall struct {
-	Handler       http.Handler
-	DB            HeimdallDB
-	AuthZFunction AuthZHandler
-	Templates     *template.Template
+	Handler          http.Handler
+	DB               HeimdallDB
+	PreAuthZFunction PreAuthZHandler
+	AuthZFunction    AuthZHandler
+	Templates        *template.Template
 
 	SessionDuration      time.Duration
 	AccessTokenDuration  time.Duration
@@ -54,7 +57,7 @@ func (h *Heimdall) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.Handler, az AuthZHandler) {
-	token, client, user := h.scrapeRequest(r)
+	token, client, user := h.ExpandRequest(r)
 	//Send information to authz function
 	s, m := az(r, token, client, user)
 	//If function returns anything other than permit write failure here
@@ -70,7 +73,7 @@ func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.
 //handlerfunction you might have.
 func (h *Heimdall) CreateHandlerFunc(handlerFunc http.HandlerFunc, az AuthZHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token, client, user := h.scrapeRequest(r)
+		token, client, user := h.ExpandRequest(r)
 		//Send information to authz function
 		s, m := az(r, token, client, user)
 		//If function returns anything other than permit write failure here
@@ -91,19 +94,25 @@ func (h *Heimdall) getLoggedInUser(w http.ResponseWriter, r *http.Request) (User
 			userId := session.GetUserId()
 			session.SetExpires(time.Now().Add(h.SessionDuration))
 			h.DB.UpdateToken(session)
+			r.Header.Set("X-User-Id", userId)
+			r.Header.Set("X-Client-Id", session.GetClientId())
 			return h.DB.GetUser(userId)
 		}
 	}
 	//Is the user directly credentialing?
 	if username, password, ok := r.BasicAuth(); ok {
-		return h.DB.VerifyUser(username, password)
+		user, err := h.DB.VerifyUser(username, password)
+		if err == nil {
+			r.Header.Set("X-User-Id", user.GetId())
+			r.Header.Set("X-Client-Id", "heimdall")
+		}
+		return user, err
 	}
 	return nil, errors.New("User not logged in")
 }
 
-func (h *Heimdall) scrapeRequest(r *http.Request) (Token, Client, User) {
+func (h *Heimdall) ExpandRequest(r *http.Request) (Token, Client, User) {
 	//Check for token presence
-	var t string
 	var token Token
 	var client Client
 	var user User
@@ -120,18 +129,18 @@ func (h *Heimdall) scrapeRequest(r *http.Request) (Token, Client, User) {
 			token.SetExpires(time.Now().UTC())
 			token.SetUserId(user.GetId())
 			token.SetClientId(client.GetId())
+		} else {
+			client, err = h.DB.VerifyClient(username, password)
+			if err == nil {
+				token = h.DB.NewToken()
+				token.SetType(TokenTypeBasic)
+				token.SetExpires(time.Now().UTC())
+				token.SetClientId(client.GetId())
+			}
 		}
-		client, err = h.DB.VerifyClient(username, password)
-		if err == nil {
-			token = h.DB.NewToken()
-			token.SetType(TokenTypeBasic)
-			token.SetExpires(time.Now().UTC())
-			token.SetClientId(client.GetId())
-		}
-	} else if ah := r.Header.Get("Authorization"); strings.HasPrefix(ah, "Bearer ") {
-		t = ah[7:]
-		if t != "" {
-			token, err = h.DB.GetToken(t)
+	} else if at, ok := advhttp.BearerAuth(r); ok {
+		if at != "" {
+			token, err = h.DB.GetToken(at)
 			//If present, gather token information
 			if err == nil {
 				client, _ = h.DB.GetClient(token.GetClientId())
@@ -148,5 +157,11 @@ func (h *Heimdall) scrapeRequest(r *http.Request) (Token, Client, User) {
 		}
 	}
 
+	if token.GetUserId() != "" {
+		r.Header.Set("X-User-Id", token.GetUserId())
+	} else {
+		r.Header.Set("X-User-Id", token.GetClientId())
+	}
+	r.Header.Set("X-Client-Id", token.GetClientId())
 	return token, client, user
 }

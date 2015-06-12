@@ -23,11 +23,7 @@ func (u User) SetName(name string) {
 }
 
 func (u User) GetConcents(clientId string) []string {
-	concents := make([]string, 0)
-	for _, v := range giu.MustGetArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".concents") {
-		concents = append(concents, giu.MustGetStringAtDocPath(v, "/"))
-	}
-	return concents
+	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".concents")
 }
 
 func (u User) SetConcents(clientId string, concents []string) {
@@ -35,11 +31,7 @@ func (u User) SetConcents(clientId string, concents []string) {
 }
 
 func (u User) GetRefreshTokens(clientId string) []string {
-	refreshTokens := make([]string, 0)
-	for _, v := range giu.MustGetArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".refresh_tokens") {
-		refreshTokens = append(refreshTokens, giu.MustGetStringAtDocPath(v, "/"))
-	}
-	return refreshTokens
+	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".refresh_tokens")
 }
 
 func (u User) SetRefreshTokens(clientId string, refreshTokens []string) {

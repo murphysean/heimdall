@@ -48,11 +48,7 @@ func (t Token) SetExpires(expires time.Time) {
 }
 
 func (t Token) GetScope() []string {
-	scope := make([]string, 0)
-	for _, v := range giu.MustGetArrayAtObjPath(map[string]interface{}(t), "scope") {
-		scope = append(scope, giu.MustGetStringAtDocPath(v, "/"))
-	}
-	return scope
+	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(t), "scope")
 }
 
 func (t Token) SetScope(scope []string) {
