@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"github.com/murphysean/heimdall"
 	"io/ioutil"
 	"os"
@@ -45,6 +46,7 @@ func (db *FileDB) VerifyUser(username, password string) (heimdall.User, error) {
 }
 
 func (db *FileDB) CreateUser(user heimdall.User) (heimdall.User, error) {
+	db.cache.Put(user.GetId(), user)
 	b, err := json.Marshal(&user)
 	if err != nil {
 		return user, err
@@ -57,6 +59,17 @@ func (db *FileDB) CreateUser(user heimdall.User) (heimdall.User, error) {
 }
 
 func (db *FileDB) GetUser(userId string) (heimdall.User, error) {
+	u, err := db.cache.GetWithValueLoader(userId, db.getUser)
+	if err != nil {
+		return nil, err
+	}
+	if user, ok := u.(heimdall.User); ok {
+		return user, nil
+	}
+	return nil, errors.New("Unknown Value")
+}
+
+func (db *FileDB) getUser(userId string) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(db.Directory, USERS_DIRECTORY, userId+".json"))
 	if err != nil {
 		return nil, err
@@ -74,5 +87,6 @@ func (db *FileDB) UpdateUser(user heimdall.User) (heimdall.User, error) {
 }
 
 func (db *FileDB) DeleteUser(userId string) error {
+	db.cache.Invalidate(userId)
 	return os.Remove(filepath.Join(db.Directory, USERS_DIRECTORY, userId+".json"))
 }
