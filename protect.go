@@ -131,7 +131,7 @@ func (h *Heimdall) ExpandRequest(r *http.Request) (Token, Client, User) {
 			token.SetType(TokenTypeBasic)
 			token.SetExpires(time.Now().UTC())
 			token.SetUserId(user.GetId())
-			token.SetClientId(client.GetId())
+			token.SetClientId("heimdall")
 		} else {
 			client, err = h.DB.VerifyClient(username, password)
 			if err == nil {
