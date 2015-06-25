@@ -26,6 +26,8 @@ func NewHeimdall(handler http.Handler, preauthzfunc PreAuthZHandler, authzfunc A
 	h.AuthZFunction = authzfunc
 	h.NoPermitFunction = nopermitfunc
 
+	h.RewriteMe = false
+
 	h.SessionDuration = 4 * time.Hour
 	h.AccessTokenDuration = time.Hour
 	h.RefreshTokenDuration = 100 * 365 * 24 * time.Hour
@@ -42,6 +44,8 @@ type Heimdall struct {
 	AuthZFunction    AuthZHandler
 	NoPermitFunction NoPermitHandler
 	Templates        *template.Template
+
+	RewriteMe bool
 
 	SessionDuration      time.Duration
 	AccessTokenDuration  time.Duration
@@ -67,6 +71,9 @@ func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.
 	if s != Permit {
 		h.NoPermitFunction(w, r, s, m, token, client, user)
 		return
+	}
+	if h.RewriteMe {
+		//TODO Do a find and replace for /me/ or /me$ on path and replace with userid (or clientid if client token) from token
 	}
 	//And now let the original handler do it's job
 	handler.ServeHTTP(w, r)
