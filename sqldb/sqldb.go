@@ -27,9 +27,9 @@ func NewSqlDB(db *sql.DB) *SqlDB {
 
 	check(db.Exec("CREATE TABLE IF NOT EXISTS clients (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, secret TEXT NOT NULL, type TEXT NOT NULL, internal INTEGER NOT NULL DEFAULT 0, redirecturis TEXT NOT NULL)"))
 	check(db.Exec("CREATE TABLE IF NOT EXISTS users (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, json TEXT)"))
-	check(db.Exec("CREATE TABLE IF NOT EXISTS auth (userid TEXT NOT NULL PRIMARY KEY, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL, salt TEXT NOT NULL, FOREIGN KEY userid REFERENCES users(id) ON DELETE CASCADE"))
-	check(db.Exec("CREATE TABLE IF NOT EXISTS tokens (id TEXT NOT NULL PRIMARY KEY, type TEXT NOT NULL, userid TEXT NOT NULL, clientid TEXT NOT NULL, expires DATETIME NOT NULL, scope TEXT NOT NULL, accesstype TEXT NOT NULL, refreshtokenid TEXT NOT NULL, FOREIGN KEY userid REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY clientid REFERENCES clients(id) ON DELETE CASCADE, FOREIGN KEY refreshtokenid REFERENCES tokens(id) ON DELETE CASCADE)"))
-	check(db.Exec("CREATE TABLE IF NOT EXISTS concents (userid TEXT NOT NULL, clientid TEXT NOT NULL, concent TEXT NOT NULL, PRIMARY KEY(userid,clientid,concent), FOREIGN KEY userid REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY clientid REFERENCES clients(id) ON DELETE CASCADE)"))
+	check(db.Exec("CREATE TABLE IF NOT EXISTS auth (userid TEXT NOT NULL PRIMARY KEY, username TEXT NOT NULL UNIQUE, password TEXT NOT NULL, salt TEXT NOT NULL, FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE)"))
+	check(db.Exec("CREATE TABLE IF NOT EXISTS tokens (id TEXT NOT NULL PRIMARY KEY, type TEXT NOT NULL, userid TEXT NOT NULL, clientid TEXT NOT NULL, expires DATETIME NOT NULL, scope TEXT NOT NULL, accesstype TEXT NOT NULL, refreshtokenid TEXT NOT NULL, FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (clientid) REFERENCES clients(id) ON DELETE CASCADE, FOREIGN KEY (refreshtokenid) REFERENCES tokens(id) ON DELETE CASCADE)"))
+	check(db.Exec("CREATE TABLE IF NOT EXISTS concents (userid TEXT NOT NULL, clientid TEXT NOT NULL, concent TEXT NOT NULL, PRIMARY KEY(userid,clientid,concent), FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (clientid) REFERENCES clients(id) ON DELETE CASCADE)"))
 
 	return sdb
 }
