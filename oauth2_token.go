@@ -1,8 +1,6 @@
 package heimdall
 
 import (
-	"github.com/pborman/uuid"
-	//"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"fmt"
 	"mime"
@@ -10,6 +8,15 @@ import (
 	"strings"
 	"time"
 )
+
+func genUUIDv4() string {
+	u := make([]byte, 16)
+	rand.Read(u)
+	//Set the version to 4
+	u[6] = (u[6] | 0x40) & 0x4F
+	u[8] = (u[8] | 0x80) & 0xBF
+	return fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
+}
 
 type tokenResponse struct {
 	AccessToken  string   `json:"access_token"`
@@ -136,7 +143,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-User-Id", code.GetUserId())
 
 		//Coolness all is in order to give away the access token requested
-		tokenId := uuid.New()
+		tokenId := genUUIDv4()
 		token := h.DB.NewToken()
 		token.SetId(tokenId)
 		token.SetType(TokenTypeBearer)
@@ -153,7 +160,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		refreshTokenId := ""
 
 		if code.GetAccessType() == TokenAccessTypeOffline {
-			refreshTokenId = uuid.New()
+			refreshTokenId = genUUIDv4()
 			refreshToken := h.DB.NewToken()
 			refreshToken.SetId(refreshTokenId)
 			refreshToken.SetType(TokenTypeRefresh)
@@ -198,7 +205,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-User-Id", clientId)
 		r.Header.Set("X-Client-Id", clientId)
 		//Coolness, all is in order to give away the access token requested
-		tokenId := uuid.New()
+		tokenId := genUUIDv4()
 		token := h.DB.NewToken()
 		token.SetId(tokenId)
 		token.SetType(TokenTypeBearer)
@@ -265,7 +272,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-User-Id", userId)
 
 		//Coolness all is in order to give away the access token requested
-		tokenId := uuid.New()
+		tokenId := genUUIDv4()
 		token := h.DB.NewToken()
 		token.SetId(tokenId)
 		token.SetType(TokenTypeBearer)
@@ -327,7 +334,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//Coolness all is in order to give away the access token requested
-		tokenId := uuid.New()
+		tokenId := genUUIDv4()
 		token := h.DB.NewToken()
 		token.SetId(tokenId)
 		token.SetType(TokenTypeBearer)
@@ -345,7 +352,7 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		//Maybe not always create a refresh token?
 		refreshTokenId := ""
 		if r.PostFormValue("access_type") == TokenAccessTypeOffline {
-			refreshTokenId = uuid.New()
+			refreshTokenId = genUUIDv4()
 			refreshToken := h.DB.NewToken()
 			refreshToken.SetId(refreshTokenId)
 			refreshToken.SetType(TokenTypeRefresh)
