@@ -1,18 +1,19 @@
 package memdb
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"errors"
 	"github.com/murphysean/heimdall"
 )
 
 func (db *MemDB) NewClient() heimdall.Client {
-	c := make(Client)
-	c["id"] = uuid.New()
+	c := new(Client)
+	c.Id = genUUIDv4()
 	return c
 }
 
 func (db *MemDB) VerifyClient(clientId, clientSecret string) (heimdall.Client, error) {
+	db.m.RLock()
+	defer db.m.RUnlock()
 	c, err := db.GetClient(clientId)
 	if err != nil {
 		return nil, err
@@ -24,11 +25,15 @@ func (db *MemDB) VerifyClient(clientId, clientSecret string) (heimdall.Client, e
 }
 
 func (db *MemDB) CreateClient(client heimdall.Client) (heimdall.Client, error) {
+	db.m.Lock()
+	defer db.m.Unlock()
 	db.clientMap[client.GetId()] = client
 	return client, nil
 }
 
 func (db *MemDB) GetClient(clientId string) (heimdall.Client, error) {
+	db.m.RLock()
+	defer db.m.RUnlock()
 	client, ok := db.clientMap[clientId]
 	if !ok {
 		return client, errors.New("Not Found")
@@ -37,10 +42,14 @@ func (db *MemDB) GetClient(clientId string) (heimdall.Client, error) {
 }
 
 func (db *MemDB) UpdateClient(client heimdall.Client) (heimdall.Client, error) {
+	db.m.Lock()
+	defer db.m.Unlock()
 	return db.CreateClient(client)
 }
 
 func (db *MemDB) DeleteClient(clientId string) error {
+	db.m.Lock()
+	defer db.m.Unlock()
 	delete(db.clientMap, clientId)
 	return nil
 }

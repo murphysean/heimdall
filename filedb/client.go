@@ -1,55 +1,88 @@
 package filedb
 
 import (
-	giu "github.com/murphysean/gointerfaceutils"
+	"sync"
 )
 
-type Client map[string]interface{}
+type Client struct {
+	Id           string   `json:"id"`
+	Secret       string   `json:"secret"`
+	Name         string   `json:"name"`
+	Type         string   `json:"type"`
+	Internal     bool     `json:"internal"`
+	RedirectUris []string `json:"redirect_uris"`
 
-func (c Client) GetId() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(c), "id")
+	sync.RWMutex
 }
 
-func (c Client) SetId(id string) {
-	c["id"] = id
+func (c *Client) GetId() string {
+	c.RLock()
+	defer c.RUnlock()
+	return c.Id
 }
 
-func (c Client) GetSecret() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(c), "secret")
+func (c *Client) SetId(id string) {
+	c.Lock()
+	defer c.Unlock()
+	c.Id = id
 }
 
-func (c Client) SetSecret(secret string) {
-	c["secret"] = secret
+func (c *Client) GetSecret() string {
+	c.RLock()
+	defer c.RUnlock()
+	return c.Secret
 }
 
-func (c Client) GetName() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(c), "type")
+func (c *Client) SetSecret(secret string) {
+	c.Lock()
+	defer c.Unlock()
+	c.Secret = secret
 }
 
-func (c Client) SetName(name string) {
-	c["name"] = name
+func (c *Client) GetName() string {
+	c.RLock()
+	defer c.RUnlock()
+	return c.Name
 }
 
-func (c Client) GetType() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(c), "type")
+func (c *Client) SetName(name string) {
+	c.Lock()
+	defer c.Unlock()
+	c.Name = name
 }
 
-func (c Client) SetType(t string) {
-	c["type"] = t
+func (c *Client) GetType() string {
+	c.RLock()
+	defer c.RUnlock()
+	return c.Type
 }
 
-func (c Client) GetInternal() bool {
-	return giu.MustGetBooleanAtObjPath(map[string]interface{}(c), "internal")
+func (c *Client) SetType(t string) {
+	c.Lock()
+	defer c.Unlock()
+	c.Type = t
 }
 
-func (c Client) SetInternal(internal bool) {
-	c["internal"] = internal
+func (c *Client) GetInternal() bool {
+	c.RLock()
+	defer c.RUnlock()
+	return c.Internal
 }
 
-func (c Client) GetRedirectURIs() []string {
-	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(c), "redirect_uris")
+func (c *Client) SetInternal(internal bool) {
+	c.Lock()
+	defer c.Unlock()
+	c.Internal = internal
 }
 
-func (c Client) SetRedirectURIs(redirectURIs []string) {
-	c["redirect_uris"] = redirectURIs
+func (c *Client) GetRedirectURIs() []string {
+	c.RLock()
+	defer c.RUnlock()
+	return c.RedirectUris
+}
+
+func (c *Client) SetRedirectURIs(redirectURIs []string) {
+	c.Lock()
+	defer c.Unlock()
+	c.RedirectUris = redirectURIs
 }

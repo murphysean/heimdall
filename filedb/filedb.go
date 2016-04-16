@@ -1,9 +1,20 @@
 package filedb
 
 import (
+	"crypto/rand"
+	"fmt"
 	"github.com/murphysean/cache"
 	"time"
 )
+
+func genUUIDv4() string {
+	u := make([]byte, 16)
+	rand.Read(u)
+	//Set the version to 4
+	u[6] = (u[6] | 0x40) & 0x4F
+	u[8] = (u[8] | 0x80) & 0xBF
+	return fmt.Sprintf("%x-%x-%x-%x-%x", u[0:4], u[4:6], u[6:8], u[8:10], u[10:])
+}
 
 type FileDB struct {
 	Directory string

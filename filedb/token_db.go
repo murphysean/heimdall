@@ -1,7 +1,6 @@
 package filedb
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"errors"
 	"github.com/murphysean/heimdall"
@@ -16,8 +15,8 @@ const (
 )
 
 func (db *FileDB) NewToken() heimdall.Token {
-	t := make(Token)
-	t["id"] = uuid.New()
+	t := new(Token)
+	t.Id = genUUIDv4()
 	return t
 }
 

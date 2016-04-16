@@ -1,7 +1,8 @@
 package heimdall
 
 import (
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
+	//"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"fmt"
 	"mime"

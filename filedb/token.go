@@ -1,72 +1,115 @@
 package filedb
 
 import (
-	giu "github.com/murphysean/gointerfaceutils"
+	"sync"
 	"time"
 )
 
-type Token map[string]interface{}
+type Token struct {
+	Id           string    `json:"id"`
+	Type         string    `json:"type"`
+	UserId       string    `json:"user_id"`
+	ClientId     string    `json:"client_id"`
+	Expires      time.Time `json:"expires"`
+	Scope        []string  `json:"scope"`
+	AccessType   string    `json:"access_type"`
+	RefreshToken string    `json:"refresh_token"`
+
+	sync.RWMutex
+}
 
 func (t Token) GetId() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "id")
+	t.RLock()
+	defer t.RUnlock()
+	return t.Id
 }
 
 func (t Token) SetId(id string) {
-	t["id"] = id
+	t.Lock()
+	defer t.Unlock()
+	t.Id = id
 }
 
 func (t Token) GetType() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "type")
+	t.RLock()
+	defer t.RUnlock()
+	return t.Type
 }
 
 func (t Token) SetType(tp string) {
-	t["type"] = tp
+	t.Lock()
+	defer t.Unlock()
+	t.Type = tp
 }
 
 func (t Token) GetUserId() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "user_id")
+	t.RLock()
+	defer t.RUnlock()
+	return t.UserId
 }
 
 func (t Token) SetUserId(userId string) {
-	t["user_id"] = userId
+	t.Lock()
+	defer t.Unlock()
+	t.UserId = userId
 }
 
 func (t Token) GetClientId() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "client_id")
+	t.RLock()
+	defer t.RUnlock()
+	return t.ClientId
 }
 
 func (t Token) SetClientId(clientId string) {
-	t["client_id"] = clientId
+	t.Lock()
+	defer t.Unlock()
+	t.ClientId = clientId
 }
 
 func (t Token) GetExpires() time.Time {
-	return giu.MustGetTimeAtObjPath(map[string]interface{}(t), "expires")
+	t.RLock()
+	defer t.RUnlock()
+	return t.Expires
 }
 
 func (t Token) SetExpires(expires time.Time) {
-	t["expires"] = expires.UTC().Format(time.RFC3339)
+	t.Lock()
+	defer t.Unlock()
+	t.Expires = expires
 }
 
 func (t Token) GetScope() []string {
-	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(t), "scope")
+	t.RLock()
+	defer t.RUnlock()
+	return t.Scope
 }
 
 func (t Token) SetScope(scope []string) {
-	t["scope"] = scope
+	t.Lock()
+	defer t.Unlock()
+	t.Scope = scope
 }
 
 func (t Token) GetAccessType() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "access_type")
+	t.RLock()
+	defer t.RUnlock()
+	return t.AccessType
 }
 
 func (t Token) SetAccessType(accessType string) {
-	t["access_type"] = accessType
+	t.Lock()
+	defer t.Unlock()
+	t.AccessType = accessType
 }
 
 func (t Token) GetRefreshToken() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(t), "refresh_token")
+	t.RLock()
+	defer t.RUnlock()
+	return t.RefreshToken
 }
 
 func (t Token) SetRefreshToken(refreshToken string) {
-	t["refresh_token"] = refreshToken
+	t.Lock()
+	defer t.Unlock()
+	t.RefreshToken = refreshToken
 }

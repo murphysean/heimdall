@@ -1,39 +1,71 @@
 package memdb
 
 import (
-	giu "github.com/murphysean/gointerfaceutils"
+	"sync"
 )
 
-type User map[string]interface{}
+type User struct {
+	Id      string `json:"id"`
+	Name    string `json:"displayName"`
+	Clients map[string]struct {
+		Concents      []string `json:"concents"`
+		RefreshTokens []string `json:"refresh_tokens"`
+	} `json:"clients"`
+
+	Username string `json:"username"`
+	Password string `json:"password"`
+
+	sync.RWMutex
+}
 
 func (u User) GetId() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(u), "id")
+	u.RLock()
+	defer u.RUnlock()
+	return u.Id
 }
 
 func (u User) SetId(id string) {
-	u["id"] = id
+	u.Lock()
+	defer u.Unlock()
+	u.Id = id
 }
 
 func (u User) GetName() string {
-	return giu.MustGetStringAtObjPath(map[string]interface{}(u), "displayName")
+	u.RLock()
+	defer u.RUnlock()
+	return u.Name
 }
 
 func (u User) SetName(name string) {
-	u["displayName"] = name
+	u.Lock()
+	defer u.Unlock()
+	u.Name = name
 }
 
 func (u User) GetConcents(clientId string) []string {
-	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".concents")
+	u.RLock()
+	defer u.RUnlock()
+	return u.Clients[clientId].Concents
 }
 
 func (u User) SetConcents(clientId string, concents []string) {
-	giu.SetValueAtObjPath(map[string]interface{}(u), "user.clients."+clientId+".concents", concents)
+	u.Lock()
+	defer u.Unlock()
+	c := u.Clients[clientId]
+	c.Concents = concents
+	u.Clients[clientId] = c
 }
 
 func (u User) GetRefreshTokens(clientId string) []string {
-	return giu.MustGetStringArrayAtObjPath(map[string]interface{}(u), "clients."+clientId+".refresh_tokens")
+	u.RLock()
+	defer u.RUnlock()
+	return u.Clients[clientId].RefreshTokens
 }
 
 func (u User) SetRefreshTokens(clientId string, refreshTokens []string) {
-	giu.SetValueAtObjPath(map[string]interface{}(u), "user.clients."+clientId+".refresh_tokens", refreshTokens)
+	u.Lock()
+	defer u.Unlock()
+	c := u.Clients[clientId]
+	c.Concents = refreshTokens
+	u.Clients[clientId] = c
 }

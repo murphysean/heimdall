@@ -1,7 +1,6 @@
 package filedb
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -16,8 +15,8 @@ const (
 )
 
 func (db *FileDB) NewUser() heimdall.User {
-	u := make(User)
-	u["id"] = uuid.New()
+	u := new(User)
+	u.Id = genUUIDv4()
 	return u
 }
 
