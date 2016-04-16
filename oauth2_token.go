@@ -1,6 +1,7 @@
 package heimdall
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"mime"
