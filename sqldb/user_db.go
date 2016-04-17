@@ -21,7 +21,7 @@ func (db *SqlDB) InsertOrUpdateRawUser(userId, name string, user map[string]inte
 		return nil, err
 	}
 	var ojson []byte
-	var ouser map[string]interface{}
+	ouser := make(map[string]interface{})
 	var doc interface{}
 	err = tx.QueryRow("SELECT json FROM users WHERE userId = ?", userId).Scan(&ojson)
 	if err == nil {
