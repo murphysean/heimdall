@@ -93,11 +93,15 @@ func (db *SqlDB) GetUser(userId string) (heimdall.User, error) {
 		return u, err
 	}
 
-	rows, err := db.Db.Query("SELECT clientid, concent FROM concents WHERE userid = ?", userId)
-	for rows.Next() {
+	crows, err := db.Db.Query("SELECT clientid, concent FROM concents WHERE userid = ?", userId)
+	if err != nil {
+		return u, err
+	}
+	defer crows.Close()
+	for crows.Next() {
 		var clientId string
 		var concent string
-		if err = rows.Scan(&clientId, &concent); err != nil {
+		if err = crows.Scan(&clientId, &concent); err != nil {
 			continue
 		}
 		client := u.Clients[clientId]
@@ -105,11 +109,15 @@ func (db *SqlDB) GetUser(userId string) (heimdall.User, error) {
 		u.Clients[clientId] = client
 	}
 
-	rows, err = db.Db.Query("SELECT clientid, id FROM tokens WHERE userid = ? AND type = 'refresh' AND datetime(expired) > datetime('now')", userId)
-	for rows.Next() {
+	trows, err := db.Db.Query("SELECT clientid, id FROM tokens WHERE userid = ? AND type = 'refresh' AND datetime(expired) > datetime('now')", userId)
+	if err != nil {
+		return u, err
+	}
+	defer trows.Close()
+	for trows.Next() {
 		var clientId string
 		var tokenId string
-		if err = rows.Scan(&clientId, &tokenId); err != nil {
+		if err = trows.Scan(&clientId, &tokenId); err != nil {
 			continue
 		}
 		client := u.Clients[clientId]
