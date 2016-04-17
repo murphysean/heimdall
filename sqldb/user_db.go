@@ -109,7 +109,7 @@ func (db *SqlDB) GetUser(userId string) (heimdall.User, error) {
 		u.Clients[clientId] = client
 	}
 
-	trows, err := db.Db.Query("SELECT clientid, id FROM tokens WHERE userid = ? AND type = 'refresh' AND datetime(expired) > datetime('now')", userId)
+	trows, err := db.Db.Query("SELECT clientid, id FROM tokens WHERE userid = ? AND type = 'refresh' AND datetime(expires) > datetime('now')", userId)
 	if err != nil {
 		return u, err
 	}
