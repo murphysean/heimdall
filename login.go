@@ -26,9 +26,10 @@ func (h *Heimdall) Login(w http.ResponseWriter, r *http.Request) {
 					cookie.Secure = true
 					cookie.HttpOnly = true
 					w.Header().Add("Set-Cookie", cookie.String())
+					setValuesOnContext(r.Context(), user.GetId(), "heimdall")
 					//Set Headers so the rest of the application can get at the user and client ids
-					r.Header.Set("X-User-Id", user.GetId())
-					r.Header.Set("X-Client-Id", "heimdall")
+					//r.Header.Set("X-User-Id", user.GetId())
+					//r.Header.Set("X-Client-Id", "heimdall")
 				}
 			}
 		}

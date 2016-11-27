@@ -75,8 +75,9 @@ func (h *Heimdall) Protect(w http.ResponseWriter, r *http.Request, handler http.
 	if h.RewriteMe {
 		//TODO Do a find and replace for /me/ or /me$ on path and replace with userid (or clientid if client token) from token
 	}
+	ctx := newContext(r.Context(), token, user, client)
 	//And now let the original handler do it's job
-	handler.ServeHTTP(w, r)
+	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
 //This function will allow you to leverage Heimdall to create fine grained policies on each
@@ -104,8 +105,9 @@ func (h *Heimdall) getLoggedInUser(w http.ResponseWriter, r *http.Request) (User
 			userId := session.GetUserId()
 			session.SetExpires(time.Now().Add(h.SessionDuration))
 			h.DB.UpdateToken(session)
-			r.Header.Set("X-User-Id", userId)
-			r.Header.Set("X-Client-Id", session.GetClientId())
+			setValuesOnContext(r.Context(), userId, session.GetClientId())
+			//r.Header.Set("X-User-Id", userId)
+			//r.Header.Set("X-Client-Id", session.GetClientId())
 			return h.DB.GetUser(userId)
 		}
 	}
@@ -113,8 +115,9 @@ func (h *Heimdall) getLoggedInUser(w http.ResponseWriter, r *http.Request) (User
 	if username, password, ok := r.BasicAuth(); ok {
 		user, err := h.DB.VerifyUser(username, password)
 		if err == nil {
-			r.Header.Set("X-User-Id", user.GetId())
-			r.Header.Set("X-Client-Id", "heimdall")
+			setValuesOnContext(r.Context(), user.GetId(), "heimdall")
+			//r.Header.Set("X-User-Id", user.GetId())
+			//r.Header.Set("X-Client-Id", "heimdall")
 		}
 		return user, err
 	}
@@ -169,11 +172,13 @@ func (h *Heimdall) ExpandRequest(r *http.Request) (Token, Client, User) {
 
 	if token != nil {
 		if token.GetUserId() != "" {
-			r.Header.Set("X-User-Id", token.GetUserId())
+			setValuesOnContext(r.Context(), token.GetUserId(), token.GetClientId())
+			//r.Header.Set("X-User-Id", token.GetUserId())
 		} else {
-			r.Header.Set("X-User-Id", token.GetClientId())
+			setValuesOnContext(r.Context(), token.GetClientId(), token.GetClientId())
+			//r.Header.Set("X-User-Id", token.GetClientId())
 		}
-		r.Header.Set("X-Client-Id", token.GetClientId())
+		//r.Header.Set("X-Client-Id", token.GetClientId())
 	}
 	return token, client, user
 }

@@ -1,6 +1,7 @@
 package heimdall
 
 import (
+	"context"
 	"errors"
 	"time"
 )
@@ -105,4 +106,51 @@ type Client interface {
 	SetInternal(internal bool)
 	GetRedirectURIs() []string
 	SetRedirectURIs(redirectURIs []string)
+}
+
+type UserIder interface {
+	UserId(id string)
+}
+type ClientIder interface {
+	ClientId(id string)
+}
+
+func setValuesOnContext(ctx context.Context, userId string, clientId string) {
+	if uier := ctx.Value("userider"); uier != nil {
+		if uierv, ok := uier.(UserIder); ok {
+			uierv.UserId(userId)
+		}
+	}
+	if cier := ctx.Value("clientider"); cier != nil {
+		if cierv, ok := cier.(ClientIder); ok {
+			cierv.ClientId(clientId)
+		}
+	}
+}
+
+type ctxkey int
+
+var tokenKey ctxkey = 0
+var userKey ctxkey = 1
+var clientKey ctxkey = 2
+
+func newContext(ctx context.Context, t Token, u User, c Client) context.Context {
+	if t == nil || c == nil {
+		return ctx
+	}
+	tc := context.WithValue(ctx, tokenKey, t)
+	tc = context.WithValue(ctx, userKey, u)
+	tc = context.WithValue(ctx, clientKey, c)
+	return tc
+}
+
+func FromContext(ctx context.Context) (t Token, u User, c Client, ok bool) {
+	if t, ok = ctx.Value(tokenKey).(Token); !ok {
+		return
+	}
+	if c, ok = ctx.Value(clientKey).(Client); !ok {
+		return
+	}
+	u, _ = ctx.Value(userKey).(User)
+	return
 }

@@ -33,8 +33,9 @@ func (h *Heimdall) OAuth2Authorize(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	r.Header.Set("X-Client-Id", "heimdall")
-	r.Header.Set("X-User-Id", user.GetId())
+	setValuesOnContext(r.Context(), user.GetId(), "heimdall")
+	//r.Header.Set("X-User-Id", user.GetId())
+	//r.Header.Set("X-Client-Id", "heimdall")
 
 	//Grab the client
 	clientId := r.FormValue("client_id")
@@ -43,7 +44,8 @@ func (h *Heimdall) OAuth2Authorize(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Client Id", http.StatusBadRequest)
 		return
 	}
-	r.Header.Set("X-Client-Id", clientId)
+	//r.Header.Set("X-Client-Id", clientId)
+	setValuesOnContext(r.Context(), user.GetId(), clientId)
 	//Is the redirectURI valid?
 	valid := false
 	redirectURIs := client.GetRedirectURIs()

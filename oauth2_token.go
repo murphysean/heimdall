@@ -103,8 +103,9 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 			writeTokenErrorResponse(w, r, "invalid_client", "Unknown Client", "https://tools.ietf.org/html/rfc6749")
 			return
 		}
-		r.Header.Set("X-User-Id", clientId)
-		r.Header.Set("X-Client-Id", clientId)
+		setValuesOnContext(r.Context(), clientId, clientId)
+		//r.Header.Set("X-User-Id", clientId)
+		//r.Header.Set("X-Client-Id", clientId)
 
 		//The big question now is whether I should _force_ the client to auth, the spec recommends that any client that is confidential should
 		if client.GetType() == "confidential" {
@@ -141,7 +142,8 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 			writeTokenErrorResponse(w, r, "invalid_grant", "The provided redirect_uri does not match the redirection URI used in the authorization request, or was issued to another client", "https://tools.ietf.org/html/rfc6749")
 			return
 		}
-		r.Header.Set("X-User-Id", code.GetUserId())
+		setValuesOnContext(r.Context(), code.GetUserId(), clientId)
+		//r.Header.Set("X-User-Id", code.GetUserId())
 
 		//Coolness all is in order to give away the access token requested
 		tokenId := genUUIDv4()
@@ -202,9 +204,9 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 				scope = append(scope, s)
 			}
 		}
-
-		r.Header.Set("X-User-Id", clientId)
-		r.Header.Set("X-Client-Id", clientId)
+		setValuesOnContext(r.Context(), clientId, clientId)
+		//r.Header.Set("X-User-Id", clientId)
+		//r.Header.Set("X-Client-Id", clientId)
 		//Coolness, all is in order to give away the access token requested
 		tokenId := genUUIDv4()
 		token := h.DB.NewToken()
@@ -244,8 +246,9 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 			writeTokenErrorResponse(w, r, "invalid_client", "The refresh_token provided does not tie to a valid client", "https://tools.ietf.org/html/rfc6749")
 			return
 		}
-		r.Header.Set("X-User-Id", clientId)
-		r.Header.Set("X-Client-Id", clientId)
+		setValuesOnContext(r.Context(), clientId, clientId)
+		//r.Header.Set("X-User-Id", clientId)
+		//r.Header.Set("X-Client-Id", clientId)
 
 		if client.GetType() == "confidential" {
 			if clientId == "" || clientSecret == "" {
@@ -270,7 +273,8 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userId := refreshToken.GetUserId()
-		r.Header.Set("X-User-Id", userId)
+		setValuesOnContext(r.Context(), userId, clientId)
+		//r.Header.Set("X-User-Id", userId)
 
 		//Coolness all is in order to give away the access token requested
 		tokenId := genUUIDv4()
@@ -306,8 +310,9 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 			writeTokenErrorResponse(w, r, "invalid_client", "Unknown Client", "https://tools.ietf.org/html/rfc6749")
 			return
 		}
-		r.Header.Set("X-User-Id", clientId)
-		r.Header.Set("X-Client-Id", clientId)
+		setValuesOnContext(r.Context(), clientId, clientId)
+		//r.Header.Set("X-User-Id", clientId)
+		//r.Header.Set("X-Client-Id", clientId)
 		clientInternal := client.GetInternal()
 		clientType := client.GetType()
 		if !clientInternal || clientType != "confidential" {
@@ -324,7 +329,8 @@ func (h *Heimdall) OAuth2Token(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		userId := user.GetId()
-		r.Header.Set("X-User-Id", userId)
+		setValuesOnContext(r.Context(), userId, clientId)
+		//r.Header.Set("X-User-Id", userId)
 
 		asked_scope := strings.Split(r.PostFormValue("scope"), " ")
 		scope := make([]string, 0)
