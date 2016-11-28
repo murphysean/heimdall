@@ -18,37 +18,37 @@ type User struct {
 	sync.RWMutex
 }
 
-func (u User) GetId() string {
+func (u *User) GetId() string {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Id
 }
 
-func (u User) SetId(id string) {
+func (u *User) SetId(id string) {
 	u.Lock()
 	defer u.Unlock()
 	u.Id = id
 }
 
-func (u User) GetName() string {
+func (u *User) GetName() string {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Name
 }
 
-func (u User) SetName(name string) {
+func (u *User) SetName(name string) {
 	u.Lock()
 	defer u.Unlock()
 	u.Name = name
 }
 
-func (u User) GetConcents(clientId string) []string {
+func (u *User) GetConcents(clientId string) []string {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Clients[clientId].Concents
 }
 
-func (u User) SetConcents(clientId string, concents []string) {
+func (u *User) SetConcents(clientId string, concents []string) {
 	u.Lock()
 	defer u.Unlock()
 	c := u.Clients[clientId]
@@ -56,13 +56,13 @@ func (u User) SetConcents(clientId string, concents []string) {
 	u.Clients[clientId] = c
 }
 
-func (u User) GetRefreshTokens(clientId string) []string {
+func (u *User) GetRefreshTokens(clientId string) []string {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Clients[clientId].RefreshTokens
 }
 
-func (u User) SetRefreshTokens(clientId string, refreshTokens []string) {
+func (u *User) SetRefreshTokens(clientId string, refreshTokens []string) {
 	u.Lock()
 	defer u.Unlock()
 	c := u.Clients[clientId]

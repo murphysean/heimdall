@@ -33,6 +33,7 @@ func NewHeimdall(handler http.Handler, preauthzfunc PreAuthZHandler, authzfunc A
 	h.RefreshTokenDuration = 100 * 365 * 24 * time.Hour
 	h.AuthCodeDuration = 10 * time.Minute
 	h.UserConcentDuration = 5 * time.Minute
+	h.SecureCookie = true
 
 	return h
 }
@@ -52,6 +53,8 @@ type Heimdall struct {
 	RefreshTokenDuration time.Duration
 	AuthCodeDuration     time.Duration
 	UserConcentDuration  time.Duration
+
+	SecureCookie bool
 }
 
 //The purpose of heimdalls handler is to protect another handler. It
@@ -167,6 +170,7 @@ func (h *Heimdall) ExpandRequest(r *http.Request) (Token, Client, User) {
 			client, _ = h.DB.GetClient(token.GetClientId())
 			token.SetExpires(time.Now().Add(h.SessionDuration))
 			h.DB.UpdateToken(token)
+
 		}
 	}
 

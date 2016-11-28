@@ -26,12 +26,10 @@ func (db *MemDB) GetToken(tokenId string) (heimdall.Token, error) {
 	if err != nil {
 		return nil, errors.New("Not Found")
 	}
-	return t.(Token), nil
+	return t.(*Token), nil
 }
 
 func (db *MemDB) UpdateToken(token heimdall.Token) (heimdall.Token, error) {
-	db.m.Lock()
-	defer db.m.Unlock()
 	return db.CreateToken(token)
 }
 

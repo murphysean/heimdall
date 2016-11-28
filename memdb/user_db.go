@@ -29,7 +29,7 @@ func (db *MemDB) CreateUser(user heimdall.User) (heimdall.User, error) {
 	db.m.Lock()
 	defer db.m.Unlock()
 	db.userMap[user.GetId()] = user
-	if u, ok := user.(User); ok {
+	if u, ok := user.(*User); ok {
 		if u.Username != "" && u.Password != "" {
 			db.loginMap[u.Username] = login{id: user.GetId(), password: u.Password}
 		}

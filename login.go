@@ -23,13 +23,17 @@ func (h *Heimdall) Login(w http.ResponseWriter, r *http.Request) {
 					cookie := http.Cookie{}
 					cookie.Name = "session-id"
 					cookie.Value = session.GetId()
-					cookie.Secure = true
+					if h.SecureCookie {
+						cookie.Secure = true
+					}
 					cookie.HttpOnly = true
 					w.Header().Add("Set-Cookie", cookie.String())
 					setValuesOnContext(r.Context(), user.GetId(), "heimdall")
 					//Set Headers so the rest of the application can get at the user and client ids
 					//r.Header.Set("X-User-Id", user.GetId())
 					//r.Header.Set("X-Client-Id", "heimdall")
+				} else {
+					//TODO Log an error if there is a standard logger?
 				}
 			}
 		}
